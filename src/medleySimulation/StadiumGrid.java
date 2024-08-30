@@ -5,7 +5,6 @@ package medleySimulation;
 
 import java.util.concurrent.BrokenBarrierException;
 import java.util.concurrent.CyclicBarrier;
-import java.util.concurrent.atomic.AtomicInteger;
 
 //This class represents the club as a grid of GridBlocks
 public class StadiumGrid {
@@ -20,8 +19,7 @@ public class StadiumGrid {
 	private final static int minX =5;//minimum x dimension
 	private final static int minY =5;//minimum y dimension
 	private CyclicBarrier barrier = new CyclicBarrier(10);
-	private AtomicInteger startingThreadCount = new AtomicInteger(0);
-	
+
 	StadiumGrid(int x, int y, int nTeams ,FinishCounter c) throws InterruptedException {
 		if (x<minX) x=minX; //minimum x
 		if (y<minY) y=minY; //minimum x
@@ -69,8 +67,8 @@ public class StadiumGrid {
 	public  boolean inStadiumArea(int i, int j) {
 		return inGrid(i,j);
 	}
-	
-	
+
+
 	//a person enters the stadium
 	public GridBlock enterStadium(PeopleLocation myLocation) throws InterruptedException  {
 				while((entrance.get(myLocation.getID()))) {} //wait at entrace until entrance is free - spinning, not good
@@ -82,12 +80,15 @@ public class StadiumGrid {
 	
 	//returns starting block for a team (the lane)
 	public synchronized GridBlock returnStartingBlock(int team) {
+		System.out.println("*************************** "+startingBlocks[team]+"*************************** ");
 		return startingBlocks[team];
 	}
+
+	//Barrier to wait for the first 10 starting threads
 	public void BlockStartingThreads(){
 		try {
 			barrier.await();
-			barrier=null;
+			barrier=null;	//For the CyclicBarrier to only make one cycle
 		} catch (BrokenBarrierException e) {
 			throw new RuntimeException(e);
 		} catch (InterruptedException e) {
@@ -114,8 +115,6 @@ public class StadiumGrid {
 			return currentBlock;
 		}
 
-		//BlockStartingThreads(yDir);
-		startingThreadCount.incrementAndGet();
 		GridBlock newBlock;
 		if(add_x!=0)
 			newBlock = whichBlock(add_x+c_x,c_y); //try moving x only first
@@ -125,16 +124,14 @@ public class StadiumGrid {
 		while((!newBlock.get(myLocation.getID()))) {} //wait until block is free - but spinning is bad
 		myLocation.setLocation(newBlock);
 		currentBlock.release(); //must release current block
-
-		if(newBlock.getY()==start_y&&barrier!=null){
-			System.out.println("************* Less than 10 threads *******************");
+		if(newBlock.getY()==start_y&&barrier!=null){	//Blocking the first 10 threads
 			BlockStartingThreads();
 		}
 		return newBlock;
 	} 
 	
 	//levitate to a specific block -
-public GridBlock jumpTo(GridBlock currentBlock,int x, int y,PeopleLocation myLocation) throws InterruptedException {  
+	public GridBlock jumpTo(GridBlock currentBlock,int x, int y,PeopleLocation myLocation) throws InterruptedException {
 		//restrict i and j to grid
 		if (!inStadiumArea(x,y)) {
 			System.out.println("Invalid move");
@@ -144,13 +141,13 @@ public GridBlock jumpTo(GridBlock currentBlock,int x, int y,PeopleLocation myLoc
 
 		GridBlock newBlock= whichBlock(x,y);//try diagonal or y
 		
-		
+
 			while((!newBlock.get(myLocation.getID()))) { } //wait until block is free - but spinning, not good
 			myLocation.setLocation(newBlock);		
 			currentBlock.release(); //must release current block
 			return newBlock;
 		
-		
+
 	} 
 	
 //x and y actually correspond to the grid pos, but this is for generality.
