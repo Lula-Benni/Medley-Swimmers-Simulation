@@ -3,6 +3,10 @@
 
 package medleySimulation;
 
+import java.util.concurrent.BrokenBarrierException;
+import java.util.concurrent.CyclicBarrier;
+import java.util.concurrent.atomic.AtomicInteger;
+
 //This class represents the club as a grid of GridBlocks
 public class StadiumGrid {
 	private GridBlock [][] Blocks;
@@ -15,7 +19,8 @@ public class StadiumGrid {
 	private GridBlock startingBlocks[]; //hard coded starting blocks
 	private final static int minX =5;//minimum x dimension
 	private final static int minY =5;//minimum y dimension
-	
+	private CyclicBarrier barrier = new CyclicBarrier(10);
+	private AtomicInteger startingThreadCount = new AtomicInteger(0);
 	
 	StadiumGrid(int x, int y, int nTeams ,FinishCounter c) throws InterruptedException {
 		if (x<minX) x=minX; //minimum x
@@ -77,9 +82,19 @@ public class StadiumGrid {
 	
 	//returns starting block for a team (the lane)
 	public synchronized GridBlock returnStartingBlock(int team) {
-			return startingBlocks[team];
+		return startingBlocks[team];
 	}
-	
+	public void BlockStartingThreads(){
+		try {
+			barrier.await();
+			barrier=null;
+		} catch (BrokenBarrierException e) {
+			throw new RuntimeException(e);
+		} catch (InterruptedException e) {
+			throw new RuntimeException(e);
+		}
+	}
+
 //Make a one block move in a direction
 	public GridBlock moveTowards(GridBlock currentBlock,int xDir, int yDir,PeopleLocation myLocation) throws InterruptedException {  //try to move in 
 		
@@ -88,7 +103,7 @@ public class StadiumGrid {
 		
 		int add_x= Integer.signum(xDir-c_x);//-1,0 or 1
 		int add_y= Integer.signum(yDir-c_y);//-1,0 or 1
-		
+
 		if ((add_x==0)&&(add_y==0)) {//not actually moving
 			return currentBlock;
 		}
@@ -99,19 +114,23 @@ public class StadiumGrid {
 			return currentBlock;
 		}
 
+		//BlockStartingThreads(yDir);
+		startingThreadCount.incrementAndGet();
 		GridBlock newBlock;
 		if(add_x!=0)
 			newBlock = whichBlock(add_x+c_x,c_y); //try moving x only first
 		else 
 			newBlock= whichBlock(add_x+c_x,add_y+c_y);//try diagonal or y
-		
-		
-			while((!newBlock.get(myLocation.getID()))) {} //wait until block is free - but spinning is bad
-			myLocation.setLocation(newBlock);		
-			currentBlock.release(); //must release current block
-			return newBlock;
-		
-		
+
+		while((!newBlock.get(myLocation.getID()))) {} //wait until block is free - but spinning is bad
+		myLocation.setLocation(newBlock);
+		currentBlock.release(); //must release current block
+
+		if(newBlock.getY()==start_y&&barrier!=null){
+			System.out.println("************* Less than 10 threads *******************");
+			BlockStartingThreads();
+		}
+		return newBlock;
 	} 
 	
 	//levitate to a specific block -
