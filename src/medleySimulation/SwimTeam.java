@@ -24,7 +24,7 @@ public class SwimTeam extends Thread {
 	    SwimStroke[] strokes = SwimStroke.values();  // Get all enum constants
 		stadium.returnStartingBlock(ID);
 
-        CountDownLatch[] latches = new CountDownLatch[sizeOfTeam - 1]; // Latches for sequential execution
+        CountDownLatch[] latches = new CountDownLatch[sizeOfTeam - 1]; // Latches for maintaining thread order
 
         for (int i = 0; i < sizeOfTeam - 1; i++) {
 			latches[i] = new CountDownLatch(1); // Initialize latches
@@ -33,8 +33,9 @@ public class SwimTeam extends Thread {
 		for(int i=teamNo*sizeOfTeam,s=0;i<((teamNo+1)*sizeOfTeam); i++,s++) { //initialise swimmers in team
 			locArr[i]= new PeopleLocation(i,strokes[s].getColour());
 	      	int speed=(int)(Math.random() * (3)+30); //range of speeds
-			swimmers[s] = new Swimmer(i,teamNo,locArr[i],finish,speed,strokes[s]
-			,(s == 0) ? null : latches[s - 1], (s == sizeOfTeam - 1) ? null : latches[s]); //hardcoded speed for now
+			swimmers[s] = new Swimmer(i,teamNo,locArr[i],finish,speed /*hardcoded speed for now*/,strokes[s]
+			,(s == 0) ? null : latches[s - 1], //If it's the first(Black) thread the must be no lock
+			(s == sizeOfTeam - 1) ? null : latches[s]); //If it's the last(Red) thread there must be no lock
 		}
 	}
 	

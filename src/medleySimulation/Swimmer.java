@@ -97,7 +97,8 @@ public class Swimmer extends Thread {
 		//	System.out.println("Thread "+this.ID + " at position: " + currentBlock.getX()  + " " +currentBlock.getY() );
 			sleep(movingSpeed*3);  //not rushing
 			currentBlock=stadium.moveTowards(currentBlock,x_st,y_st,myLocation); //head toward starting block
-		 	if (notifyNext!=null) notifyNext.countDown();
+
+		 	if (notifyNext!=null) notifyNext.countDown(); // Release the next thread to go to the starting block in its turn
 		//	System.out.println("Thread "+this.ID + " moved toward start to position: " + currentBlock.getX()  + " " +currentBlock.getY() );
 		}
 	System.out.println("-----------Thread "+this.ID + " at start " + currentBlock.getX()  + " " +currentBlock.getY() );
@@ -145,7 +146,7 @@ public class Swimmer extends Thread {
 	public void run() {
 		try {
 			if (waitForTheFirstThreads != null) {
-				waitForTheFirstThreads.await(); // Wait for the previous swimmer to finish
+				waitForTheFirstThreads.await(); // Wait for the threads with higher order to go to the starting blocks first
 			}
 			//Swimmer arrives
 			sleep(movingSpeed+(rand.nextInt(10))); //arriving takes a while
