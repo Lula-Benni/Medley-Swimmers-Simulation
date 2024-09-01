@@ -80,7 +80,6 @@ public class StadiumGrid {
 	
 	//returns starting block for a team (the lane)
 	public synchronized GridBlock returnStartingBlock(int team) {
-		System.out.println("*************************** "+startingBlocks[team]+"*************************** ");
 		return startingBlocks[team];
 	}
 
@@ -89,12 +88,10 @@ public class StadiumGrid {
 		try {
 			barrier.await();
 			barrier=null;	//For the CyclicBarrier to only make one cycle
-		} catch (BrokenBarrierException e) {
-			throw new RuntimeException(e);
-		} catch (InterruptedException e) {
+		} catch (BrokenBarrierException | InterruptedException e) {
 			throw new RuntimeException(e);
 		}
-	}
+    }
 
 //Make a one block move in a direction
 	public GridBlock moveTowards(GridBlock currentBlock,int xDir, int yDir,PeopleLocation myLocation) throws InterruptedException {  //try to move in 
