@@ -14,9 +14,8 @@ public class SwimTeam extends Thread {
 	public static StadiumGrid stadium; //shared 
 	private Swimmer [] swimmers;
 	private int teamNo; //team number
-	private CountDownLatch[] latches;
 
-	public static final int sizeOfTeam=4;
+    public static final int sizeOfTeam=4;
 	
 	SwimTeam( int ID, FinishCounter finish,PeopleLocation [] locArr ) {
 		this.teamNo=ID;
@@ -25,9 +24,9 @@ public class SwimTeam extends Thread {
 	    SwimStroke[] strokes = SwimStroke.values();  // Get all enum constants
 		stadium.returnStartingBlock(ID);
 
-		latches = new CountDownLatch[sizeOfTeam - 1]; // Latches for sequential execution
+        CountDownLatch[] latches = new CountDownLatch[sizeOfTeam - 1]; // Latches for sequential execution
 
-		for (int i = 0; i < sizeOfTeam - 1; i++) {
+        for (int i = 0; i < sizeOfTeam - 1; i++) {
 			latches[i] = new CountDownLatch(1); // Initialize latches
 		}
 
