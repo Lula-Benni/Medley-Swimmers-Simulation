@@ -8,7 +8,6 @@ import java.awt.Color;
 import java.util.Random;
 import java.util.concurrent.BrokenBarrierException;
 import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.CyclicBarrier;
 
 
 public class Swimmer extends Thread {
@@ -25,7 +24,9 @@ public class Swimmer extends Thread {
 	private int ID; //thread ID 
 	private int team; // team ID
 	private GridBlock start;
-	private static CountDownLatch latch;
+	private CountDownLatch waitForTheFirstThreads;
+	private CountDownLatch notifyNext;
+
 	public enum SwimStroke {
 		Backstroke(1,2.5,Color.black),
 		Breaststroke(2,2.1,new Color(255,102,0)),
@@ -49,7 +50,7 @@ public class Swimmer extends Thread {
 	    private final SwimStroke swimStroke;
 	
 	//Constructor
-	Swimmer( int ID, int t, PeopleLocation loc, FinishCounter f, int speed, SwimStroke s) {
+	Swimmer(int ID, int t, PeopleLocation loc, FinishCounter f, int speed, SwimStroke s, CountDownLatch waitForTheFirstThreads, CountDownLatch notifyNext) {
 		this.swimStroke = s;
 		this.ID=ID;
 		movingSpeed=speed; //range of speeds for swimmers
@@ -58,6 +59,8 @@ public class Swimmer extends Thread {
 		start = stadium.returnStartingBlock(team);
 		finish=f;
 		rand=new Random();
+		this.waitForTheFirstThreads = waitForTheFirstThreads;
+		this.notifyNext = notifyNext;
 	}
 	
 	//getter
@@ -94,6 +97,7 @@ public class Swimmer extends Thread {
 		//	System.out.println("Thread "+this.ID + " at position: " + currentBlock.getX()  + " " +currentBlock.getY() );
 			sleep(movingSpeed*3);  //not rushing
 			currentBlock=stadium.moveTowards(currentBlock,x_st,y_st,myLocation); //head toward starting block
+		 	if (notifyNext!=null) notifyNext.countDown();
 		//	System.out.println("Thread "+this.ID + " moved toward start to position: " + currentBlock.getX()  + " " +currentBlock.getY() );
 		}
 	System.out.println("-----------Thread "+this.ID + " at start " + currentBlock.getX()  + " " +currentBlock.getY() );
@@ -140,13 +144,15 @@ public class Swimmer extends Thread {
 	
 	public void run() {
 		try {
-			
+			if (waitForTheFirstThreads != null) {
+				waitForTheFirstThreads.await(); // Wait for the previous swimmer to finish
+			}
 			//Swimmer arrives
 			sleep(movingSpeed+(rand.nextInt(10))); //arriving takes a while
 			myLocation.setArrived();
 			enterStadium();
-
 			goToStartingBlocks();
+
 			dive();
 			swimRace();
 			if(swimStroke.order==4) {

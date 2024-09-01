@@ -6,6 +6,7 @@ import medleySimulation.Swimmer.SwimStroke;
 
 import java.util.Arrays;
 import java.util.concurrent.BrokenBarrierException;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.CyclicBarrier;
 
 public class SwimTeam extends Thread {
@@ -13,9 +14,8 @@ public class SwimTeam extends Thread {
 	public static StadiumGrid stadium; //shared 
 	private Swimmer [] swimmers;
 	private int teamNo; //team number
-	CyclicBarrier start_barrier = new CyclicBarrier(4);
+	private CountDownLatch[] latches;
 
-	
 	public static final int sizeOfTeam=4;
 	
 	SwimTeam( int ID, FinishCounter finish,PeopleLocation [] locArr ) {
@@ -25,10 +25,17 @@ public class SwimTeam extends Thread {
 	    SwimStroke[] strokes = SwimStroke.values();  // Get all enum constants
 		stadium.returnStartingBlock(ID);
 
+		latches = new CountDownLatch[sizeOfTeam - 1]; // Latches for sequential execution
+
+		for (int i = 0; i < sizeOfTeam - 1; i++) {
+			latches[i] = new CountDownLatch(1); // Initialize latches
+		}
+
 		for(int i=teamNo*sizeOfTeam,s=0;i<((teamNo+1)*sizeOfTeam); i++,s++) { //initialise swimmers in team
 			locArr[i]= new PeopleLocation(i,strokes[s].getColour());
 	      	int speed=(int)(Math.random() * (3)+30); //range of speeds
-			swimmers[s] = new Swimmer(i,teamNo,locArr[i],finish,speed,strokes[s]); //hardcoded speed for now
+			swimmers[s] = new Swimmer(i,teamNo,locArr[i],finish,speed,strokes[s]
+			,(s == 0) ? null : latches[s - 1], (s == sizeOfTeam - 1) ? null : latches[s]); //hardcoded speed for now
 		}
 	}
 	
