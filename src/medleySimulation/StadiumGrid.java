@@ -50,9 +50,9 @@ public class StadiumGrid {
 		}
 	}
 	
-	public  int getMaxX() { return x;}
+	public synchronized int getMaxX() { return x;}
 	
-	public int getMaxY() { return y;}
+	public synchronized int getMaxY() { return y;}
 
 	public GridBlock whereEntrance() {  return entrance; }
 
