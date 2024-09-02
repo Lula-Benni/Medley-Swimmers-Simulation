@@ -5,17 +5,18 @@
 package medleySimulation;
 
 
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class GridBlock {
 	
-	private AtomicInteger isOccupied = new AtomicInteger();
+	private final AtomicInteger isOccupied = new AtomicInteger();
 	
-	private final boolean isStart;  //is this a starting block?
+	private final AtomicBoolean isStart = new AtomicBoolean();  //is this a starting block?
 	private int [] coords; // the coordinate of the block.
 	
 	GridBlock(boolean startBlock) throws InterruptedException {
-		isStart=startBlock;
+		isStart.set(startBlock);
 		isOccupied.set(-1);
 	}
 	
@@ -35,24 +36,21 @@ public class GridBlock {
 		isOccupied.set(threadID);  //set ID to thread that had block
 		return false;
 	}
-		
-	
+
 	//release a block
 	public synchronized void release() {
 		isOccupied.set(-1);
 	}
-	
 
 	//is a bloc already occupied?
 	public  boolean occupied() {
 		if(isOccupied.get()==-1) return false;
 		return true;
 	}
-	
-	
+
 	//is a start block
 	public  boolean isStart() {
-		return isStart;	
+		return isStart.get();
 	}
 
 }
