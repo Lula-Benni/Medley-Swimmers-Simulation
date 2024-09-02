@@ -24,8 +24,10 @@ public class Swimmer extends Thread {
 	private int ID; //thread ID 
 	private int team; // team ID
 	private GridBlock start;
-	private CountDownLatch waitForTheFirstThreads;
-	private CountDownLatch notifyNext;
+	private final CountDownLatch waitForTheFirstThreads; // wait for the thread with higher order latch
+	private final CountDownLatch notifyNext; // Releasing/Notify the next thread in line
+	private final CountDownLatch waitForSwimmer; // wait for the swimming thread latch
+	private final CountDownLatch notifyNextSwimmer; // Releasing or notifying the next swimmer
 
 	public enum SwimStroke {
 		Backstroke(1,2.5,Color.black),
@@ -50,7 +52,7 @@ public class Swimmer extends Thread {
 	    private final SwimStroke swimStroke;
 	
 	//Constructor
-	Swimmer(int ID, int t, PeopleLocation loc, FinishCounter f, int speed, SwimStroke s, CountDownLatch waitForTheFirstThreads, CountDownLatch notifyNext) {
+	Swimmer(int ID, int t, PeopleLocation loc, FinishCounter f, int speed, SwimStroke s, CountDownLatch waitForTheFirstThreads, CountDownLatch notifyNext, CountDownLatch waitForSwimmer, CountDownLatch notifyNextSwimmer) {
 		this.swimStroke = s;
 		this.ID=ID;
 		movingSpeed=speed; //range of speeds for swimmers
@@ -61,6 +63,8 @@ public class Swimmer extends Thread {
 		rand=new Random();
 		this.waitForTheFirstThreads = waitForTheFirstThreads;
 		this.notifyNext = notifyNext;
+		this.waitForSwimmer = waitForSwimmer;
+		this.notifyNextSwimmer = notifyNextSwimmer;
 	}
 	
 	//getter
@@ -133,13 +137,16 @@ public class Swimmer extends Thread {
 	
 	//!!!You do not need to change the method below!!!
 	//after finished the race
-	public void exitPool() throws InterruptedException {		
+	public void exitPool() throws InterruptedException {
 		int bench=stadium.getMaxY()-swimStroke.getOrder(); 			 //they line up
 		int lane = currentBlock.getX()+1;//slightly offset
 		currentBlock=stadium.moveTowards(currentBlock,lane,currentBlock.getY(),myLocation);
+
+		notifyNextSwimmer.countDown(); //Releasing the next swimmer when the swimming thread reaches finish line/starting block
+
 	   while (currentBlock.getY()!=bench) {
 		 	currentBlock=stadium.moveTowards(currentBlock,lane,bench,myLocation);
-			sleep(movingSpeed*3);  //not rushing 
+			sleep(movingSpeed*3);  //not rushing
 		}
 	}
 	
@@ -154,6 +161,10 @@ public class Swimmer extends Thread {
 			enterStadium();
 			goToStartingBlocks();
 
+			if(currentBlock.getY()==100&&swimStroke.order!=1&& waitForSwimmer !=null) {
+				waitForSwimmer.await(); // Wait for the current swimmer to finish swimming
+			}
+
 			dive();
 			swimRace();
 			if(swimStroke.order==4) {
@@ -163,7 +174,6 @@ public class Swimmer extends Thread {
 				//System.out.println("Thread "+this.ID + " done " + currentBlock.getX()  + " " +currentBlock.getY() );
 				exitPool();//if not last swimmer leave pool
 			}
-
 		} catch (InterruptedException | BrokenBarrierException e1) {  //do nothing
 		}
 	}
