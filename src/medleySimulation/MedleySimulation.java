@@ -59,7 +59,15 @@ public class MedleySimulation {
 		// add the listener to the jbutton to handle the "pressed" event
 		startB.addActionListener(new ActionListener() {
 		    public void actionPerformed(ActionEvent e)  {
-			    	  //does nothing - fix this 	  
+			    	  //does nothing - fix this
+				//Start counter thread - for updating results
+				Thread results = new Thread(counterDisplay);
+				results.start();
+
+				//start teams, which start swimmers.
+				for (int i=0;i<numTeams;i++) {
+					teams[i].start();
+				}
 		    }
 		   });
 	
@@ -101,14 +109,5 @@ public class MedleySimulation {
 		//start viewer thread
 		Thread view = new Thread(stadiumView); 
 		view.start();
-       
-      	//Start counter thread - for updating results
-      	Thread results = new Thread(counterDisplay);  
-      	results.start();
-      	
-      	//start teams, which start swimmers.
-      	for (int i=0;i<numTeams;i++) {
-			teams[i].start();
-		}
 	}
 }
