@@ -36,8 +36,8 @@ public class SwimTeam extends Thread {
 			locArr[i]= new PeopleLocation(i,strokes[s].getColour());
 	      	int speed=(int)(Math.random() * (3)+30); //range of speeds
 			swimmers[s] = new Swimmer(i,teamNo,locArr[i],finish,speed /*hardcoded speed for now*/,strokes[s]
-			,(s == 0) ? null : startingBlockArrivalOrderLatches[s - 1], //If it's the first(Black) thread the must be no latch
-			(s == sizeOfTeam - 1) ? null : startingBlockArrivalOrderLatches[s], //If it's the last(Red) thread there must be no latch
+			,(s == 0) ? null : startingBlockArrivalOrderLatches[s - 1], //If it's the first(Backstroke) thread the must be no latch
+			(s == sizeOfTeam - 1) ? null : startingBlockArrivalOrderLatches[s], //If it's the last(Freestyle) thread there must be no latch
 			(s == 0) ? null : waitForSwimmerLatches[s-1],
 			(s == sizeOfTeam - 1) ? null : waitForSwimmerLatches[s]);
 		}
