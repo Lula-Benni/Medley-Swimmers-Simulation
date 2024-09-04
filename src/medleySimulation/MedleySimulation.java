@@ -60,6 +60,10 @@ public class MedleySimulation {
 		startB.addActionListener(new ActionListener() {
 		    public void actionPerformed(ActionEvent e)  {
 			    	  //does nothing - fix this
+				//start viewer thread
+				Thread view = new Thread(stadiumView);
+				view.start();
+
 				//Start counter thread - for updating results
 				Thread results = new Thread(counterDisplay);
 				results.start();
@@ -92,22 +96,17 @@ public class MedleySimulation {
 	
 //Main method - starts it all
 	public static void main(String[] args) throws InterruptedException {
-	
-	
+
 	    finishLine = new FinishCounter(); //counters for people inside and outside club
-	 
-		stadiumGrid = new StadiumGrid(gridX, gridY, numTeams,finishLine); //setup stadium with size     
+
+		stadiumGrid = new StadiumGrid(gridX, gridY, numTeams,finishLine); //setup stadium with size
 		SwimTeam.stadium = stadiumGrid; //grid shared with class
 		Swimmer.stadium = stadiumGrid; //grid shared with class
 	    peopleLocations = new PeopleLocation[numTeams*SwimTeam.sizeOfTeam]; //four swimmers per team
 		teams = new SwimTeam[numTeams];
 		for (int i=0;i<numTeams;i++) {
-        	teams[i]=new SwimTeam(i, finishLine, peopleLocations);        	
+        	teams[i]=new SwimTeam(i, finishLine, peopleLocations);
 		}
 		setupGUI(frameX, frameY);  //Start Panel thread - for drawing animation
-		
-		//start viewer thread
-		Thread view = new Thread(stadiumView); 
-		view.start();
 	}
 }
