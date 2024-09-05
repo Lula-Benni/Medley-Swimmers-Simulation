@@ -79,7 +79,7 @@ public class StadiumGrid {
 	}
 	
 	//returns starting block for a team (the lane)
-	public synchronized GridBlock returnStartingBlock(int team) {
+	public GridBlock returnStartingBlock(int team) {
 		return startingBlocks[team];
 	}
 

@@ -23,7 +23,7 @@ public class PeopleLocation  { // this is made a separate class so don't have to
 	}
 	
 	//setter
-	public synchronized void setInStadium(boolean in) {
+	public void setInStadium(boolean in) {
 		inStadium = in;
 	}
 	
@@ -31,7 +31,7 @@ public class PeopleLocation  { // this is made a separate class so don't have to
 	public boolean getArrived() {
 		return arrived;
 	}
-	public synchronized void setArrived() {
+	public void setArrived() {
 		arrived=true;
 	}
 
@@ -39,24 +39,24 @@ public class PeopleLocation  { // this is made a separate class so don't have to
 	public GridBlock getLocation() {
 		return location;
 	}
-	public synchronized void setLocation(GridBlock location) {
+	public void setLocation(GridBlock location) {
 		this.location = location;
 	}
 
 	//getter
-	public synchronized int getX() { return location.getX();}
+	public int getX() { return location.getX();}
 	
 	//getter
-	public synchronized int getY() {	return location.getY();	}
+	public int getY() {	return location.getY();	}
 	
 	//getter
-	public synchronized int getID() {	return ID;	}
+	public int getID() {	return ID;	}
 
 	//getter
-	public synchronized boolean inPool() {
+	public boolean inPool() {
 		return inStadium;
 	}
 	//getter and setter
-	public synchronized Color getColor() { return myColor; }
+	public Color getColor() { return myColor; }
 	public  void setColor(Color myColor) { this.myColor= myColor; }
 }

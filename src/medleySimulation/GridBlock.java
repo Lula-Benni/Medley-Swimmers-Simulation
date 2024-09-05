@@ -10,14 +10,14 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 public class GridBlock {
 	
-	private final AtomicInteger isOccupied = new AtomicInteger();
+	private int isOccupied;
 	
 	private final AtomicBoolean isStart = new AtomicBoolean();  //is this a starting block?
 	private int [] coords; // the coordinate of the block.
 	
 	GridBlock(boolean startBlock) throws InterruptedException {
 		isStart.set(startBlock);
-		isOccupied.set(-1);
+		isOccupied = -1;
 	}
 	
 	GridBlock(int x, int y, boolean startBlock) throws InterruptedException {
@@ -25,26 +25,27 @@ public class GridBlock {
 		coords = new int [] {x,y};
 	}
 	
-	public synchronized int getX() {return coords[0];}
+	public  int getX() {return coords[0];}
 	
-	public synchronized int getY() {return coords[1];}
+	public  int getY() {return coords[1];}
 	
 	//Get a block
+	// synchronized this method so that Threads get a block one at a time, so that they are always in different blocks
 	public synchronized boolean get(int threadID) throws InterruptedException {
-		if (isOccupied.get()==threadID) return true; //thread Already in this block
-		if (isOccupied.get()>=0) return false; //space is occupied
-		isOccupied.set(threadID);  //set ID to thread that had block
+		if (isOccupied == threadID) return true; //thread Already in this block
+		if (isOccupied >= 0) return false; //space is occupied
+		isOccupied = threadID;  //set ID to thread that had block
 		return false;
 	}
 
 	//release a block
-	public synchronized void release() {
-		isOccupied.set(-1);
+	public void release() {
+		isOccupied = -1;
 	}
 
 	//is a bloc already occupied?
 	public  boolean occupied() {
-		if(isOccupied.get()==-1) return false;
+		if(isOccupied == -1) return false;
 		return true;
 	}
 
