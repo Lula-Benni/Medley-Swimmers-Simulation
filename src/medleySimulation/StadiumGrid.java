@@ -13,7 +13,7 @@ public class StadiumGrid {
 	private final int y; //maximum y value
 	public  static int start_y; // where the starting blocks are 
 	
-	private GridBlock entrance; //hard coded entrance
+	private final GridBlock entrance; //hard coded entrance
 	
 	private GridBlock startingBlocks[]; //hard coded starting blocks
 	private final static int minX =5;//minimum x dimension
@@ -68,14 +68,19 @@ public class StadiumGrid {
 		return inGrid(i,j);
 	}
 
-
 	//a person enters the stadium
 	public GridBlock enterStadium(PeopleLocation myLocation) throws InterruptedException  {
-				while((entrance.get(myLocation.getID()))) {} //wait at entrace until entrance is free - spinning, not good
-				myLocation.setLocation(entrance);
-				myLocation.setInStadium(true);
-				return entrance;
-			
+		synchronized (entrance){ //Only one thread must enter here
+			while((entrance.get(myLocation.getID()))) {//wait at entrance until entrance is free - spinning, not good
+						entrance.wait(); // Threads must wait if the entrance is not free instead of spinning
+			}
+		}
+		synchronized (entrance){
+			entrance.notifyAll(); // The waiting Threads are all notified to check if entrance is free
+		}
+		myLocation.setLocation(entrance);
+		myLocation.setInStadium(true);
+		return entrance;
 	}
 	
 	//returns starting block for a team (the lane)
@@ -93,8 +98,8 @@ public class StadiumGrid {
 		}
     }
 
-//Make a one block move in a direction
-	public GridBlock moveTowards(GridBlock currentBlock,int xDir, int yDir,PeopleLocation myLocation) throws InterruptedException {  //try to move in 
+	//Make a one block move in a direction
+	public GridBlock moveTowards(GridBlock currentBlock,int xDir, int yDir,PeopleLocation myLocation) throws InterruptedException {  //try to move in
 		
 		int c_x= currentBlock.getX();
 		int c_y= currentBlock.getY();
@@ -140,14 +145,14 @@ public class StadiumGrid {
 		
 
 			while((!newBlock.get(myLocation.getID()))) { } //wait until block is free - but spinning, not good
-			myLocation.setLocation(newBlock);		
+			myLocation.setLocation(newBlock);
 			currentBlock.release(); //must release current block
 			return newBlock;
 		
 
 	} 
 	
-//x and y actually correspond to the grid pos, but this is for generality.
+	//x and y actually correspond to the grid pos, but this is for generality.
 	public GridBlock whichBlock(int xPos, int yPos) {
 		if (inGrid(xPos,yPos)) {
 			return Blocks[xPos][yPos];
