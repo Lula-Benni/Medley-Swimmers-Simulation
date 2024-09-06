@@ -70,16 +70,14 @@ public class StadiumGrid {
 
 	//a person enters the stadium
 	public GridBlock enterStadium(PeopleLocation myLocation) throws InterruptedException  {
-		synchronized (entrance){ //Only one thread must enter here
-			while((entrance.get(myLocation.getID()))) {//wait at entrance until entrance is free - spinning, not good
+		synchronized (entrance){ // Ensures that only one thread can execute the code inside this block on the entrance object at a time. This prevents race conditions
+			while(entrance.occupied()) {//wait at entrance until entrance is free - spinning, not good #Spinning fixed
 						entrance.wait(); // Threads must wait if the entrance is not free instead of spinning
 			}
+			myLocation.setLocation(entrance);
+			myLocation.setInStadium(true);
+			entrance.notifyAll(); // Wakes up all threads that are waiting on the entrance to check if entrance is free
 		}
-		synchronized (entrance){
-			entrance.notifyAll(); // The waiting Threads are all notified to check if entrance is free
-		}
-		myLocation.setLocation(entrance);
-		myLocation.setInStadium(true);
 		return entrance;
 	}
 	
