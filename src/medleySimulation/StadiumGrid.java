@@ -58,7 +58,7 @@ public class StadiumGrid {
 
 	//is this a valid grid reference?
 	public  boolean inGrid(int i, int j) {
-		if ((i>=x) || (j>=y) ||(i<0) || (j<0)) 
+		if ((i>=x) || (j>=y) ||(i<0) || (j<0))
 			return false;
 		return true;
 	}
@@ -98,10 +98,10 @@ public class StadiumGrid {
 
 	//Make a one block move in a direction
 	public GridBlock moveTowards(GridBlock currentBlock,int xDir, int yDir,PeopleLocation myLocation) throws InterruptedException {  //try to move in
-		
+
 		int c_x= currentBlock.getX();
 		int c_y= currentBlock.getY();
-		
+
 		int add_x= Integer.signum(xDir-c_x);//-1,0 or 1
 		int add_y= Integer.signum(yDir-c_y);//-1,0 or 1
 
@@ -121,10 +121,19 @@ public class StadiumGrid {
 		else 
 			newBlock= whichBlock(add_x+c_x,add_y+c_y);//try diagonal or y
 
-		while((!newBlock.get(myLocation.getID()))) {} //wait until block is free - but spinning is bad
-		myLocation.setLocation(newBlock);
-		currentBlock.release(); //must release current block
-		if(newBlock.getY()==start_y&&barrier!=null){	//Blocking the first 10 threads
+		synchronized (newBlock){ //Ensures that only one thread can execute the code inside this block on the newBlock object at a time. This prevents race conditions
+			while((!newBlock.get(myLocation.getID()))) {
+				newBlock.wait(); //wait until block is free - but spinning is bad #Spinning fixed
+			}
+			myLocation.setLocation(newBlock);
+		}
+
+		synchronized (currentBlock){ //Ensures that only one thread can execute the code inside this block on the currentBlock object at a time. This prevents race conditions
+			currentBlock.release(); //must release current block
+			currentBlock.notifyAll(); //Wakes up all threads that are waiting on the currentBlock to check if it is free
+		}
+
+		if(newBlock.getY()==start_y && barrier!=null){	//Blocking the first 10 threads
 			BlockStartingThreads();
 		}
 		return newBlock;
@@ -140,14 +149,19 @@ public class StadiumGrid {
 		}
 
 		GridBlock newBlock= whichBlock(x,y);//try diagonal or y
-		
 
-			while((!newBlock.get(myLocation.getID()))) { } //wait until block is free - but spinning, not good
+		synchronized (newBlock){ //Ensures that only one thread can execute the code inside this block on the newBlock object at a time. This prevents race conditions
+			while((!newBlock.get(myLocation.getID()))) {
+				newBlock.wait(); //wait until block is free - but spinning is bad #Spinning fixed
+			}
 			myLocation.setLocation(newBlock);
-			currentBlock.release(); //must release current block
-			return newBlock;
-		
+		}
 
+		synchronized (currentBlock){ //Ensures that only one thread can execute the code inside this block on the currentBlock object at a time. This prevents race conditions
+			currentBlock.release(); //must release current block
+			currentBlock.notifyAll(); //Wakes up all threads that are waiting on the currentBlock to check if it is free
+		}
+		return newBlock;
 	} 
 	
 	//x and y actually correspond to the grid pos, but this is for generality.
