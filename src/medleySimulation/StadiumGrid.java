@@ -126,6 +126,7 @@ public class StadiumGrid {
 				newBlock.wait(); //wait until block is free - but spinning is bad #Spinning fixed
 			}
 			myLocation.setLocation(newBlock);
+			newBlock.notifyAll();
 		}
 
 		synchronized (currentBlock){ //Ensures that only one thread can execute the code inside this block on the currentBlock object at a time. This prevents race conditions
@@ -155,6 +156,7 @@ public class StadiumGrid {
 				newBlock.wait(); //wait until block is free - but spinning is bad #Spinning fixed
 			}
 			myLocation.setLocation(newBlock);
+			newBlock.notifyAll();
 		}
 
 		synchronized (currentBlock){ //Ensures that only one thread can execute the code inside this block on the currentBlock object at a time. This prevents race conditions
